@@ -1,11 +1,8 @@
 name: Build BollaViewer APK
-
 on:
   workflow_dispatch:
-
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2g"
-
 jobs:
   build:
     runs-on: ubuntu-latest
