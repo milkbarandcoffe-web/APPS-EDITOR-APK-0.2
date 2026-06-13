@@ -47,16 +47,23 @@ public class MainActivity extends Activity {
         android.webkit.CookieManager.getInstance().setAcceptCookie(true);
         android.webkit.CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
         webView.setWebViewClient(new WebViewClient() {
-            @Override public void onPageFinished(WebView v, String url) { super.onPageFinished(v, url); v.postDelayed(() -> checkGasBanner(v), 800); }
+            @Override public void onPageFinished(WebView v, String url) {
+                super.onPageFinished(v, url);
+                v.postDelayed(() -> checkGasBanner(v), 800);
+            }
         });
         String url = prefs.getString("url_attivo", "");
         if (!url.isEmpty()) webView.loadUrl(url);
         root.addView(webView, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         xButton = new TextView(this);
-        xButton.setText("\u2715"); xButton.setTextSize(18); xButton.setTextColor(0xFFFFFFFF);
-        xButton.setAlpha(prefs.getInt("x_alpha", 180) / 255f); xButton.setGravity(Gravity.CENTER);
+        xButton.setText("\u2715");
+        xButton.setTextSize(18);
+        xButton.setTextColor(0xFFFFFFFF);
+        xButton.setAlpha(prefs.getInt("x_alpha", 180) / 255f);
+        xButton.setGravity(Gravity.CENTER);
         FrameLayout.LayoutParams xp = new FrameLayout.LayoutParams(dp(44), dp(44));
-        xp.gravity = Gravity.TOP | Gravity.END; xp.topMargin = dp(8); xp.rightMargin = dp(8);
+        xp.gravity = Gravity.TOP | Gravity.END;
+        xp.topMargin = dp(8); xp.rightMargin = dp(8);
         root.addView(xButton, xp);
         xGesture = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override public boolean onSingleTapConfirmed(MotionEvent e) { tapX(); return true; }
@@ -75,16 +82,30 @@ public class MainActivity extends Activity {
     }
 
     private void tapX() {
-        webView.evaluateJavascript("(function(){var b=document.querySelectorAll('button,a,[role=button]');for(var i=0;i<b.length;i++){var t=b[i].textContent||'';var a=b[i].getAttribute('aria-label')||'';if(t.trim()=='\u00d7'||t.trim()=='\u2715'||a.toLowerCase().includes('close')||a.toLowerCase().includes('dismiss')){b[i].click();return 'chiuso';}}return 'nessun_banner';})()",
-            result -> { if (""nessun_banner"".equals(result)) runOnUiThread(() -> startActivity(new Intent(this, SettingsActivity.class))); });
+        webView.evaluateJavascript("(function(){var b=document.querySelectorAll('button,a,[role=button]');for(var i=0;i<b.length;i++){var t=b[i].textContent||'';var a=b[i].getAttribute('aria-label')||'';if(t.trim()=='x'||a.toLowerCase().includes('close')||a.toLowerCase().includes('dismiss')){b[i].click();return 'chiuso';}}return 'nessun_banner';})()",
+            result -> {
+                if (result != null && result.contains("nessun_banner")) {
+                    runOnUiThread(() -> startActivity(new Intent(this, SettingsActivity.class)));
+                }
+            });
     }
 
     private void toggleBolla() {
-        if (bollaAttiva) { stopService(new Intent(this, BubbleService.class)); bollaAttiva = false; Toast.makeText(this, "Bolla disattivata", Toast.LENGTH_SHORT).show(); }
-        else { startForegroundService(new Intent(this, BubbleService.class)); bollaAttiva = true; Toast.makeText(this, "Bolla attivata", Toast.LENGTH_SHORT).show(); }
+        if (bollaAttiva) {
+            stopService(new Intent(this, BubbleService.class));
+            bollaAttiva = false;
+            Toast.makeText(this, "Bolla disattivata", Toast.LENGTH_SHORT).show();
+        } else {
+            startForegroundService(new Intent(this, BubbleService.class));
+            bollaAttiva = true;
+            Toast.makeText(this, "Bolla attivata", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    @Override protected void onActivityResult(int req, int res, Intent data) { if (req == REQ_OVERLAY && !Settings.canDrawOverlays(this)) Toast.makeText(this, "Permesso overlay necessario", Toast.LENGTH_LONG).show(); }
+    @Override protected void onActivityResult(int req, int res, Intent data) {
+        if (req == REQ_OVERLAY && !Settings.canDrawOverlays(this))
+            Toast.makeText(this, "Permesso overlay necessario", Toast.LENGTH_LONG).show();
+    }
     @Override public void onBackPressed() { if (webView.canGoBack()) webView.goBack(); else super.onBackPressed(); }
     @Override protected void onPause() { super.onPause(); webView.onPause(); android.webkit.CookieManager.getInstance().flush(); }
     @Override protected void onResume() { super.onResume(); webView.onResume(); }
